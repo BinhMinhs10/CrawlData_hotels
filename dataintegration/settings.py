@@ -112,4 +112,4 @@ DOWNLOADER_MIDDLEWARES = {
 ITEM_PIPELINES = {
   'scrapy.pipelines.images.ImagesPipeline': 1
 }
-IMAGES_STORE = 'images/HN/'
+IMAGES_STORE = 'images/HCM/'
