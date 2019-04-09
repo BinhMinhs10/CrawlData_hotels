@@ -1,0 +1,15 @@
+setup.py
+dataintegration/__init__.py
+dataintegration/items.py
+dataintegration/middlewares.py
+dataintegration/pipelines.py
+dataintegration/settings.py
+dataintegration/spiders/__init__.py
+dataintegration/spiders/booking.py
+dataintegration/spiders/ivivu.py
+dataintegration/spiders/mytour.py
+project.egg-info/PKG-INFO
+project.egg-info/SOURCES.txt
+project.egg-info/dependency_links.txt
+project.egg-info/entry_points.txt
+project.egg-info/top_level.txt
