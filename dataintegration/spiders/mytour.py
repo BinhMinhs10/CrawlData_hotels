@@ -10,6 +10,9 @@ class MytourSpider(scrapy.Spider):
     name = 'mytour'
     start_urls = ['https://mytour.vn']
 
+    custom_settings = {
+       'IMAGES_STORE' : 'images/mytour/'
+    }
     
     script = """
     function main(splash)

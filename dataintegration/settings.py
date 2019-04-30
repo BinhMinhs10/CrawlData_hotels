@@ -89,6 +89,8 @@ ROBOTSTXT_OBEY = True
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
+FEED_EXPORT_ENCODING = 'utf-8'
+
 ITEM_PIPELINES = {
     'dataintegration.pipelines.DestinationPipeline': 500,   
 }
@@ -113,3 +115,7 @@ ITEM_PIPELINES = {
   'scrapy.pipelines.images.ImagesPipeline': 1
 }
 IMAGES_STORE = 'images/mytour_HCM/'
+
+# some websites don't like it and block when your user agent is not a browser.
+USER_AGENT = 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2049.0 Safari/537.36'
+#USER_AGENT = 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1'
