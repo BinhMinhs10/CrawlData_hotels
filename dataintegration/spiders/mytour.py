@@ -9,6 +9,7 @@ from dataintegration.items import RoomItem
 class MytourSpider(scrapy.Spider):
     name = 'mytour'
     start_urls = ['https://mytour.vn']
+    #start_urls = ['https://web.archive.org/web/20190424015201/https://mytour.vn/']
 
     custom_settings = {
        'IMAGES_STORE' : 'images/mytour/'
@@ -25,6 +26,18 @@ class MytourSpider(scrapy.Spider):
         }
     end
     """
+
+    script1 = """
+    function main(splash)
+        local url = splash.args.url
+        assert(splash:go(url))
+        assert(splash:wait(6))
+        return {
+            html = splash:html(),
+            url = splash:url(),
+        }
+    end
+    """
     def start_requests(self):
         for url in self.start_urls:
             yield scrapy.Request(url, callback=self.parse)
@@ -32,15 +45,23 @@ class MytourSpider(scrapy.Spider):
             
     def parse(self, response):
         # for href in response.css('a.events-tracking::attr(href)').getall()[1:13]:
-        href = response.css('a.events-tracking::attr(href)').getall()[4]
-        yield scrapy.Request(response.urljoin(href), callback=self.parse_list)
+        hrefs = response.css('a.events-tracking::attr(href)').getall()[1:4]
+        for href in hrefs:
+            request = SplashRequest(
+                url=response.urljoin(href),
+                callback=self.parse_list,
+                meta={
+                    "splash": {"endpoint": "execute", "args": {"lua_source": self.script1}}
+                },
+            )
+            yield request
             
     def parse_list(self, response):
         
         destination = response.css('h1.title-lg a::text').get()
         
         for href in response.css('h2.title-sm a::attr(href)').getall():
-            
+            print('OK\n')
             request = SplashRequest(
                 url=response.urljoin(href),
                 callback=self.parse_detail,
@@ -48,7 +69,7 @@ class MytourSpider(scrapy.Spider):
                     "splash": {"endpoint": "execute", "args": {"lua_source": self.script}}
                 },
             )
-            # request = scrapy.Request(response.urljoin(href), callback=self.parse_detail)
+            
             request.meta['destination'] = destination
             yield request
 

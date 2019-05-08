@@ -19,13 +19,16 @@ class IvivuSpider(scrapy.Spider):
     function main(splash)
         local url = splash.args.url
         assert(splash:go(url))
+        assert(splash:runjs("$('.btn-load-more').click();"))
         assert(splash:wait(6))
+        assert(splash:runjs("$('.btn-load-more').click();"))
         return {
             html = splash:html(),
             url = splash:url(),
         }
     end
     """
+    
     def start_requests(self):
         for url in self.start_urls:
             yield scrapy.Request(url, callback=self.parse)
@@ -33,24 +36,52 @@ class IvivuSpider(scrapy.Spider):
     def parse(self, response):
         hrefs = response.css('div.super-card:not([class*="lazy"]) a::attr(href)').getall()[5:7]
         hrefs.append(response.css('div.super-card:not([class*="lazy"]) a::attr(href)').getall()[1])
-        for href in hrefs: #[0:8]
-            request = scrapy.Request(response.urljoin(href), callback=self.parse_list)
-            request.meta['destination'] = href
-            yield request
-    
-    def parse_list(self, response):
-        destination = response.meta['destination']
-        for href in response.css('div.hotel-item__wrapper a.hotel-item__a::attr(href)').getall():
-            # Khong dung if ngay dc vì 
+        print(hrefs)
+        for href in hrefs:
             request = SplashRequest(
                 url=response.urljoin(href),
-                callback=self.parse_detail,
+                callback=self.parse_list,
                 meta={
                     "splash": {"endpoint": "execute", "args": {"lua_source": self.script}}
                 },
             )
-            #request.meta['destination'] = destination
+            request.meta['destination'] = href
             yield request
+        
+    def parse_list(self, response):
+
+        for row in response.css('div.hotel-item__wrapper '):
+
+            hotel = HotelItem()
+            hotel['link'] = response.urljoin(row.css('a.hotel-item__a::attr(href)').get())
+            hotel['destination'] = response.meta['destination']
+            hotel['name'] = row.css('p.name.limit-length::text').get().strip()
+            if not row.css('span.review-score::text'):
+                hotel['rating'] = 10
+            else:
+                hotel['rating'] = row.css('span.review-score::text').get()
+            hotel['address'] = row.css('p.address.limit-length::text').getall()[1].strip()
+            
+            attributes = []
+            for attr in row.css('div.pill-item::text').getall():
+                attributes.append( attr.strip() )
+            hotel['benefits'] = attributes
+
+            rooms = []
+            
+            roomitem = RoomItem()
+            roomitem['room_type'] = row.css('div.pricing__room_name b::text').get(default='')
+            roomitem['price_per_night'] = row.css('p.price.primary span.price-num::text').get(default='')
+            if roomitem is not None :
+                rooms.append(dict(roomitem))
+            hotel['rooms'] = rooms
+            #hotel['benefits'] = response.css('div.pad-lr-15.txt-justify p::text').getall()        
+            #hotel['star'] = 5
+            
+            #image_url = response.css('img.img-responsive::attr(src)').get(default='')
+            #hotel['image_urls'] = [image_url]
+
+            yield hotel
             
     def parse_detail(self, response):
 
